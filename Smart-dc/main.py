@@ -47,7 +47,10 @@ from picking.tsp_exact import (
 from picking.tsp_nearest import (
     nearest_neighbour_order
 )
-
+from rules.explain import why
+from rules.fol_rules import load_kb, forward_chain, RULES as FOL_RULES
+from rules.certainty import reorder_advice, label as certainty_label
+from rules.fuzzy_priority import urgency, label as urgency_label
 
 # ============================================================
 # Utility Functions
@@ -415,6 +418,59 @@ def run_tsp_demo():
             )
 
 
+def run_expert_system_demo():
+    print("\n" + "=" * 60)
+    print("RULE-BASED EXPERT SYSTEM")
+    print("=" * 60)
+
+    # 1. IF-THEN rules and explanations
+    facts = {
+        "order_id": "ORD101",
+        "urgent": True,
+        "stock": 3,
+        "required_quantity": 5,
+        "reorder_level": 4,
+    }
+
+    final_facts, explanations = why(facts)
+
+    print("\nOrder decisions:")
+    for key, value in final_facts.items():
+        print(f"  {key}: {value}")
+
+    print("\nWhy the rules fired:")
+    for explanation in explanations:
+        print(" ", explanation)
+
+    # 2. First-order logic
+    print("\nFirst-order logic:")
+    kb = load_kb()
+    derived = forward_chain(kb, FOL_RULES)
+    print(f"  Initial knowledge base: {len(kb.facts) - len(derived)} facts")
+    print(f"  New conclusions: {len(derived)}")
+
+    for fact in sorted(derived):
+        if fact[0] in ("Priority", "ReorderAlert", "NeedsProtection", "PackFirst"):
+            print(" ", fact)
+
+    # 3. Certainty factors
+    print("\nCertainty-factor assessment:")
+    reorder_cf, delay_cf, _ = reorder_advice(
+        stock=3,
+        reorder_level=4,
+        demand_rising=0.7,
+        supplier_late=0.8,
+    )
+    print(f"  Reorder confidence: {reorder_cf:.2f}")
+    print(f"  Supplier-delay confidence: {delay_cf:.2f}")
+    print(f"  Recommendation: {certainty_label(reorder_cf)}")
+
+    # 4. Fuzzy urgency
+    print("\nFuzzy urgency:")
+    score, _ = urgency(hours=5, value=80)
+    print(f"  Urgency score: {score:.1f}/100")
+    print(f"  Urgency level: {urgency_label(score)}")
+
 # ============================================================
 # Main Program
 # ============================================================
@@ -469,6 +525,9 @@ def main():
 
     run_tsp_demo()
 
+    run_tsp_demo()
+    
+    run_expert_system_demo()
     # --------------------------------------------------------
     # End
     # --------------------------------------------------------
