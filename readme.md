@@ -1,320 +1,151 @@
 # Smart Distribution Center Management System
 
-## Project Overview
+AI planner for one warehouse. For every order it decides the priority, finds the items, plans the shortest picking tour, assigns a worker and a time slot, and estimates the risk of a late dispatch. Each decision uses a topic from the AI syllabus (CCSAI0301, Modules 1–4).
 
-The **Smart Distribution Center Management System** is an AI-oriented project focused on addressing inefficiencies in distribution-center operations such as goods movement, manual inventory handling, non-optimal picking paths, and delayed operational decisions.
-
-The project models a distribution center as a **search environment**, where locations are treated as states and movements are treated as actions. AI search concepts are proposed for routing, task selection, and resource scheduling.
+Pure Python 3 (standard library only). No packages to install.
 
 ---
 
-## Problem Statement
+## Quick start
 
-
-The project addresses the following problems:
-
-- Inefficient goods movement
-- Manual inventory handling
-- Non-optimal picking paths
-- Delayed operational decisions
-- Route selection and movement cost
-- Task allocation
-- Operational constraints
-
-AI search concepts are proposed for **routing, task selection, and resource scheduling**.
-
----
-
-## Problem Context
-
-A distribution center contains:
-
-- Storage locations
-- Aisles
-- Picking points
-- Dispatch areas
-
-Route or task choices that ignore distance, cost, and constraints can increase travel time and effort.
-
-The project therefore models the distribution center as a **search environment**, where:
-
-- Locations represent states
-- Movements represent actions
-
----
-
-## Problem Understanding
-
-The problem has been divided into four major AI tasks:
-
-1. Graph / state-space representation
-2. Path search
-3. Heuristic route selection
-4. Constraint handling for slot and task conflicts
-
-This follows the Unit 1 problem formulation using:
-
-- Initial state
-- Successor function
-- Goal test
-- Path cost
-
-Literature has also been reviewed to support future real-time inventory integration.
-
----
-
-## Objectives
-
-- Represent locations and movements as a searchable graph.
-- Find efficient picking and movement routes using search techniques.
-- Use heuristics to prioritize promising routes.
-- Model scheduling and slot restrictions as constraints.
-- Compare route quality using path cost and search effort.
-- Provide a base for later IoT, inventory-data, and digital-twin extensions.
-
----
-
-## Target Users / Stakeholders
-
-### Warehouse / Distribution Center Manager
-Monitors operations and resources.
-
-### Inventory Staff
-Locates, picks, and moves items.
-
-### Dispatch / Logistics Team
-Coordinates outgoing orders.
-
-### System Administrator / Developer
-Maintains data and algorithms.
-
-### Future AMR / AGV Integration
-Future deployment may connect the routing layer with AMR/AGV controllers.
-
----
-
-## Literature Review
-
-Four research papers were reviewed during the initial research phase.
-
-### 1. Araújo, Vale, Longras, Dias & Rocha (2026)
-
-**"Warehouse Layout Improvement and Routing Optimization…"**
-
-The research focuses on:
-
-- ABC classification
-- Layout restructuring
-- Nearest-neighbour routing
-
-These findings support the project's routing and layout focus.
-
-### 2. Ho, Tang, Lee, Tam & Chow (2026)
-
-**"Toward Industry 5.0: An IoT-Enabled Digital Twin…"**
-
-The research integrates:
-
-- Replenishment
-- Picking
-- Packing
-- Scenario simulation
-- Energy-aware sustainability
-- Resilience
-
-These concepts support future smart-warehouse extensions.
-
-### 3. Arvind, Shrinidhi, Deepa & Maheedhar (2025)
-
-**"Intelligent Warehousing…"**
-
-The research combines:
-
-- Machine Learning
-- RFID / IoT
-- Edge computing
-- Robotics
-- KNN routing
-
-These findings support future smart-inventory extensions.
-
-### 4. Tsarouhas & Papaevangelou (2024)
-
-**"Critical Steps and Conditions…"**
-
-The research highlights:
-
-- Digital Transformation
-- Quality 4.0
-- HRM
-- Logistics 4.0
-- Industry 4.0 adoption
-
-### Literature Review Summary
-
-Together, the reviewed studies support:
-
-- Routing efficiency
-- Layout efficiency
-- Smart-warehouse integration
-- IoT
-- Digital-twin extensions
-- Sustainable warehouse management
-
----
-
-## AI Concepts Identified for Application
-
-### Unit 1
-
-The following concepts have been identified:
-
-- State-space / graph representation
-- BFS
-- DFS
-- Heuristic Search
-- Greedy Best-First Search
-- A* Search
-- Constraint Satisfaction Problem (CSP)
-
-### A* Search
-
-A* has been selected as the main **cost-aware route candidate** using:
-
-```text
-f(n) = g(n) + h(n)
+```bash
+cd Smart-dc
+python main.py              # manager console (interactive menu)
+python main.py plan         # plan for all pending orders
+python main.py ORD104       # every step for one order
+python main.py demos        # all algorithm demos and comparisons
+python main.py demo game    # one demo
+python -m unittest discover -s tests   # 52 tests
 ```
 
-where:
-
-- `g(n)` represents the cost of reaching a node
-- `h(n)` represents the heuristic estimate
-
-### CSP
-
-Constraint Satisfaction Problem is identified for:
-
-- Slot scheduling
-- Task scheduling
-- Allocation
-- Constraint handling
-
-### AO*
-
-AO* was reviewed but was not prioritized.
-
-### Unit 2
-
-The following concepts have also been studied:
-
-- Game-tree / state-transition thinking
-- Minimax
-- Alpha-Beta pruning
-
-These are considered for a **controlled strategic decision simulation**.
-
-They are conceptual and are not being treated as ordinary warehouse-routing algorithms because ordinary warehouse routing is not adversarial.
+Demo names: `routing, picking, ao, csp, pallet, game, queens, lift, fol, explain, certainty, fuzzy, bayesnet`.
 
 ---
 
-## Work Completed During Month 1
+## How one order is planned
 
-During Month 1, the team:
+```
+Order → Rules → Item lookup → Route costs → Picking tour → Worker & slot → Final plan
+```
 
-- Finalized the project theme as an AI-oriented **Smart Distribution Center Management System**.
-- Identified key problems including route selection, movement cost, task allocation, and operational constraints.
-- Converted the distribution center into a graph/state-space model with locations as nodes and feasible movements as edges.
-- Compared Unit 1 uninformed and informed search methods.
-- Selected A* as the main cost-aware routing candidate using `g(n)` and `h(n)`.
-- Identified CSP for allocation and scheduling under variables, domains, and constraints.
-- Reviewed four research papers.
-- Connected research findings to routing/layout efficiency, smart-warehouse integration, IoT, and digital-twin extensions.
-- Studied Unit 2 Minimax and Alpha-Beta for a future strategic decision simulation.
+| Step | What happens | Technique | Code |
+|---|---|---|---|
+| 1. Rules | Urgency score from due time and value; rules set the priority | Fuzzy logic, expert system (forward chaining), certainty factors | `rules/` |
+| 2. Item lookup | Which shelf holds each item; is it really there after a failed scan | Frames, semantic net, Bayes, Dempster–Shafer | `warehouse/`, `uncertainty/` |
+| 3. Route costs | Shortest route between every pair of stops | A* (admissible heuristic: Manhattan × 2/3) | `routing/`, `picking/route_costs.py` |
+| 4. Picking tour | Best order to visit the shelves, P1 → items → D1 | TSP: exact up to 8 stops, else nearest neighbour | `picking/tsp_*.py` |
+| 5. Worker & slot | One worker of the right zone, one free slot, urgent orders first | CSP, backtracking with MRV + forward checking | `scheduling/` |
+| 6. Delay risk | P(late dispatch) | Bayesian network (enumeration) | `scheduling/delay_network.py` |
 
----
+Example (`python main.py ORD104`): urgency 92.2 → HIGH; I007 on S7 (failed scan, P(on shelf) = 0.628, verify manually), I008 on S8; tour P1 → S7 → S8 → D1 = 100 m; W004 Neha, 09-10; P(late) = 0.55.
 
-## Challenges Faced
-
-The main challenge was translating a real distribution-center environment into a clean AI search model while retaining operational constraints.
-
-Another challenge was separating core algorithms from comparison and future concepts.
-
-- BFS / DFS provide baselines.
-- A* is considered more suitable for weighted routing.
-- Minimax is limited to a defined strategic simulation rather than ordinary warehouse routing.
+Orders that cannot be planned (aisle blocked, no worker, no free slot) go to a waiting list with the reason instead of crashing.
 
 ---
 
-## Team Contribution
+## Current plan (`python main.py plan`)
 
-The team jointly contributed to:
+| Order | Priority | Picking tour | Distance | Worker | Slot |
+|---|---|---|---|---|---|
+| ORD101 | HIGH | P1 S2 S1 D1 | 40 m | W001 Rahul | 09-10 |
+| ORD102 | NORMAL | P1 S3 S4 D1 | 70 m | W002 Priya | 09-10 |
+| ORD104 | HIGH | P1 S7 S8 D1 | 100 m | W004 Neha | 09-10 |
+| ORD105 | NORMAL | P1 S9 S1 D1 | 120 m | W005 Karan | 09-10 |
+| ORD107 | HIGH | P1 L03 L04 D1 | 150 m | W006 Meera | 09-10 |
+| ORD103 | NORMAL | P1 S6 S5 D1 | 70 m | W006 Meera | 10-11 |
+| ORD106 | NORMAL | P1 L01 L02 D1 | 110 m | W002 Priya | 10-11 |
+| ORD108 | NORMAL | P1 L05 L06 D1 | 190 m | W004 Neha | 10-11 |
+| ORD109 | NORMAL | P1 L07 L08 D1 | 230 m | W001 Rahul | 10-11 |
+| ORD110 | NORMAL | P1 L09 L10 D1 | 150 m | W002 Priya | 11-12 |
 
-- Problem identification
-- Requirements discussion
-- AI concept mapping
-- Literature review
-- Project planning
-- Problem understanding
-- Algorithm study
-- System abstraction
-- Documentation
-
-Individual names and exact task ownership can be added in the project metadata.
-
----
-
-## Current Progress
-
-### Overall Progress: 25%
-
-The following work has been completed:
-
-- Problem understanding
-- Scope definition
-- Stakeholder identification
-- Literature review
-- AI mapping
-- Initial architecture planning
-
-Implementation and testing remain.
+Data: 32 locations, 20 items, 6 workers (W003 Arjun absent, so 5 available), 10 orders. Reorder alerts: I004, I010.
 
 ---
 
-## Plan for Next Review
+## Manager console (`python main.py`)
 
-The next stage of the project will focus on:
+| # | Option | # | Option |
+|---|---|---|---|
+| 1 | Add a new order (planned at once) | 10 | Mark a worker absent / present |
+| 2 | Plan all orders (MRV vs plain backtracking) | 11 | Robot aisle game (minimax / alpha-beta) |
+| 3 | Show one order's plan | 12 | Rearrange a pallet block (8-puzzle, A*) |
+| 4 | Find a route between two locations | 13 | Place hazardous pallets (N-Queens) |
+| 5 | Block / reopen an aisle | 14 | Lift transfer (missionaries–cannibals) |
+| 6 | Compare search algorithms | 15 | Measure liquid (water-jug, BFS) |
+| 7 | Stock and reorder alerts | 16 | Cheapest sources for an order (AO*) |
+| 8 | Failed scan check (Bayes / Dempster–Shafer) | 17 | Which algorithm is used for what |
+| 9 | Knowledge base queries (semantic net, rules) | 0 | Exit |
 
-- Implementing the distribution-center graph/state representation.
-- Developing and testing baseline search and A* routing with a suitable heuristic.
-- Defining path-cost metrics and comparing search strategies.
-- Building the first CSP scheduling/allocation model.
-- Building a small Minimax/Alpha-Beta strategic simulation.
-- Integrating the algorithms.
-- Collecting initial results and screenshots.
-- Retaining IoT, inventory, and digital-twin features as future extensions.
+The best method is used for each task; the weaker ones stay available for comparison.
 
 ---
 
-## Project Information
+## Verified results
+
+| Topic | Result |
+|---|---|
+| Search, 10 location pairs (avg nodes expanded) | IDS 555.6, BFS 32.2, DFS 22.3, Bidirectional 15.8, A* 12.4, Greedy 7.5. DFS shortest on 3/10; A* matched Dijkstra on every pair |
+| Alpha-beta vs minimax | Same value; 16 pallets: 7,534 vs 131,071 nodes (−94%). 8-pallet demo aisle: game value 17 |
+| TSP demo order (S5, S5, S8) | Exact 100 m vs nearest neighbour 130 m |
+| 8-puzzle (pallet block) | 17 moves; Manhattan 113 vs misplaced 883 nodes |
+| AO* | 9 of 14 nodes expanded, cost 260 m |
+| Water-jug / lift | 4 steps (BFS) / 11 journeys |
+| Bayes, one failed scan | P(on shelf) 0.95 → 0.628 → manual check |
+| Dempster–Shafer, RFID + barcode | 0.856 |
+| Bayesian network | P(late) 0.218 normally, 0.900 with congestion and shortage |
+| First-order logic | 160 facts → 23 derived |
+
+---
+
+## Folder structure
+
+```
+Smart-dc/
+├── main.py            pipeline + command line
+├── console.py         manager console
+├── data/              warehouse graph, items, workers, orders, relations, scans
+├── warehouse/         graph, frames (models.py), loaders, semantic net
+├── routing/           BFS, DFS, IDS, bidirectional, greedy, A*, comparison, water-jug
+├── picking/           route costs, TSP exact / nearest, AO*, 8-puzzle, aisle game
+├── scheduling/        CSP (plain + MRV), delay Bayesian network, N-Queens, lift
+├── rules/             rule engine, rules, FOL rules, explanation, certainty factors, fuzzy
+├── uncertainty/       Bayes scan check, Dempster–Shafer
+├── tests/             52 unit tests (each algorithm checked against a simpler method)
+└── results/           saved outputs
+```
+
+---
+
+## Syllabus coverage
+
+| Module | Topics used |
+|---|---|
+| 1 | State space, BFS, DFS, IDS, bidirectional, heuristics, greedy best-first, A*, AO*, CSP |
+| 2 | TSP, 8-puzzle, water-jug, N-Queens, missionaries–cannibals, minimax, alpha-beta |
+| 3 | Frames, semantic net, propositional logic, first-order logic and unification, forward chaining, expert system with explanation |
+| 4 | Bayes' theorem, Bayesian network, Dempster–Shafer, certainty factors, fuzzy logic |
+
+---
+
+## Future scope
+
+- Live RFID / IoT scan readings
+- Several robots routed without collisions
+- A web dashboard instead of the console
+
+---
+
+## Project information
 
 | Field | Details |
 |---|---|
 | Program | B.Tech CSE |
-| Course | Artificial Intelligence |
-| Course Code | CCSAI0301 |
+| Course | Artificial Intelligence (CCSAI0301) |
 | Faculty | Dr. Mohd. Nazim |
-| Assignment Type | Group Assignment / PBL Project |
-| Group | 3 |
-| Reporting Period | Month 1 |
-| Overall Progress | Approximately 25% |
+| Assignment | Group PBL Project, Group 3 |
 | SDG | SDG 9 – Industry, Innovation and Infrastructure |
-| Submission Date | 12/09/2026 |
-
----
 
 ## Team
-
-**Group 3**
 
 - Aashini Singh
 - Amulya Pratap Singh
@@ -322,5 +153,10 @@ The next stage of the project will focus on:
 - Ananya Rastogi
 - Abhirag Verma
 
----
+## References
 
+1. Araújo, Vale, Longras, Dias & Rocha (2026), *Warehouse Layout Improvement and Routing Optimization*.
+2. Ho, Tang, Lee, Tam & Chow (2026), *Toward Industry 5.0: An IoT-Enabled Digital Twin*.
+3. Arvind, Shrinidhi, Deepa & Maheedhar (2025), *Intelligent Warehousing*.
+4. Tsarouhas & Papaevangelou (2024), *Critical Steps and Conditions*.
+5. de Koster, Le-Duc & Roodbergen (2007), *Design and control of warehouse order picking*, EJOR.
