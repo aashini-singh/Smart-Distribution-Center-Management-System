@@ -1,0 +1,3 @@
+item_id,last_scan,rfid_on_shelf,rfid_not_on_shelf,barcode_on_shelf,barcode_not_on_shelf
+I007,failed,,,,
+I016,failed,0.70,0.10,0.60,0.15
